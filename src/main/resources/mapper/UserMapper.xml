@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yannqing.dockerdesktop.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.yannqing.dockerdesktop.domain.User">
+            <id property="user_id" column="user_id" jdbcType="INTEGER"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="address" column="address" jdbcType="VARCHAR"/>
+            <result property="phone" column="phone" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="age" column="age" jdbcType="INTEGER"/>
+            <result property="signature" column="signature" jdbcType="VARCHAR"/>
+            <result property="sex" column="sex" jdbcType="VARCHAR"/>
+            <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+            <result property="nick_name" column="nick_name" jdbcType="VARCHAR"/>
+            <result property="enabled" column="enabled" jdbcType="INTEGER"/>
+            <result property="account_no_expired" column="account_no_expired" jdbcType="INTEGER"/>
+            <result property="credentials_no_expired" column="credentials_no_expired" jdbcType="INTEGER"/>
+            <result property="account_no_locked" column="account_no_locked" jdbcType="INTEGER"/>
+            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        user_id,username,password,
+        address,phone,email,
+        age,signature,sex,
+        avatar,nick_name,enabled,
+        account_no_expired,credentials_no_expired,account_no_locked,
+        create_time,description
+    </sql>
+</mapper>
