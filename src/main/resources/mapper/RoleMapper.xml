@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yannqing.dockerdesktop.mapper.RoleMapper">
+
+    <resultMap id="BaseResultMap" type="com.yannqing.dockerdesktop.domain.Role">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="rolename" column="rolename" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,rolename,remark
+    </sql>
+    <select id="selectRoleByUserId" parameterType="integer" resultType="int">
+        select id from yan_role yr inner join yan_role_user yru on yr.id = yru.rid where yru.uid = #{userId}
+    </select>
+</mapper>
