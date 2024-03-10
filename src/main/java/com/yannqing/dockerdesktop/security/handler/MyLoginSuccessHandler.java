@@ -7,6 +7,7 @@ import com.yannqing.dockerdesktop.domain.User;
 import com.yannqing.dockerdesktop.utils.JwtUtils;
 import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.utils.ResultUtils;
+import com.yannqing.dockerdesktop.vo.LoginVo;
 import com.yannqing.dockerdesktop.vo.SecurityUser;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
@@ -59,13 +60,15 @@ public class MyLoginSuccessHandler implements AuthenticationSuccessHandler {
         //将token存入redis中
         redisCache.setCacheObject("token:"+token,String.valueOf(authentication),60*60*3, TimeUnit.SECONDS);
 
-        Map<String,Object> map = new HashMap<>();
-        map.put("token", token);
-//        map.put("authList", authList);
-        map.put("role", securityUser.getRole());
-        map.put("userInfo",user);
+        LoginVo loginVo = new LoginVo(user,token,securityUser.getRole());
 
-        response.getWriter().write(JSONUtil.toJsonStr(ResultUtils.success(Code.LOGIN_SUCCESS,map,"登录成功")));
+//        Map<String,Object> map = new HashMap<>();
+//        map.put("token", token);
+//        map.put("authList", authList);
+//        map.put("role", securityUser.getRole());
+//        map.put("userInfo",loginVo);
+
+        response.getWriter().write(JSONUtil.toJsonStr(ResultUtils.success(Code.LOGIN_SUCCESS,loginVo,"登录成功")));
         log.info("登录成功！");
     }
 }
