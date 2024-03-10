@@ -60,7 +60,7 @@ public class MyLoginSuccessHandler implements AuthenticationSuccessHandler {
         //将token存入redis中
         redisCache.setCacheObject("token:"+token,String.valueOf(authentication),60*60*3, TimeUnit.SECONDS);
 
-        LoginVo loginVo = new LoginVo(user,token,securityUser.getRole());
+        LoginVo loginVo = new LoginVo(user,token,securityUser.getRole(), authList);
 
 //        Map<String,Object> map = new HashMap<>();
 //        map.put("token", token);

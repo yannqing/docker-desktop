@@ -4,8 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 
@@ -47,8 +48,8 @@ public class Permissions implements Serializable {
     /**
      * 0代表未删除，1代表已删除
      */
-    @TableField(value = "delete_flag")
-    private Integer delete_flag;
+    @TableField(value = "isDelete")
+    private Integer isDelete;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
@@ -70,7 +71,7 @@ public class Permissions implements Serializable {
             && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
             && (this.getCode() == null ? other.getCode() == null : this.getCode().equals(other.getCode()))
             && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
-            && (this.getDelete_flag() == null ? other.getDelete_flag() == null : this.getDelete_flag().equals(other.getDelete_flag()));
+            && (this.getIsDelete() == null ? other.getIsDelete() == null : this.getIsDelete().equals(other.getIsDelete()));
     }
 
     @Override
@@ -82,7 +83,7 @@ public class Permissions implements Serializable {
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getCode() == null) ? 0 : getCode().hashCode());
         result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
-        result = prime * result + ((getDelete_flag() == null) ? 0 : getDelete_flag().hashCode());
+        result = prime * result + ((getIsDelete() == null) ? 0 : getIsDelete().hashCode());
         return result;
     }
 
@@ -97,7 +98,7 @@ public class Permissions implements Serializable {
         sb.append(", name=").append(name);
         sb.append(", code=").append(code);
         sb.append(", type=").append(type);
-        sb.append(", delete_flag=").append(delete_flag);
+        sb.append(", isDelete=").append(isDelete);
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();

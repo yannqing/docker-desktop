@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -35,7 +36,9 @@ public class LoginVo {
     private String token;
     private int role;
 
-    public LoginVo(User user, String token, int role) {
+    private List<String> authList;
+
+    public LoginVo(User user, String token, int role, List<String> authList) {
         this.user_id = user.getUser_id();
         this.username = user.getUsername();
         this.password = user.getPassword();
@@ -47,6 +50,7 @@ public class LoginVo {
         this.nick_name = user.getNick_name();
         this.token = token;
         this.role = role;
+        this.authList = authList;
     }
 
 }

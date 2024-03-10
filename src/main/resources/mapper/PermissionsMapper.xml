@@ -10,12 +10,12 @@
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="code" column="code" jdbcType="VARCHAR"/>
             <result property="type" column="type" jdbcType="INTEGER"/>
-            <result property="delete_flag" column="delete_flag" jdbcType="TINYINT"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,pid,name,
-        code,type,delete_flag
+        code,type,isDelete
     </sql>
     <select id="queryPermissionsByUserId" parameterType="integer" resultType="String">
         select distinct yp.code from yan_permissions yp inner join yan_role_permissions yrp on yp.id = yrp.pid inner join yan_role_user yru on yru.rid = yrp.rid where yru.uid = #{userId}
