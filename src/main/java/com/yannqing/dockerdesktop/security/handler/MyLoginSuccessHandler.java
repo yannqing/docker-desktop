@@ -9,7 +9,6 @@ import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.utils.ResultUtils;
 import com.yannqing.dockerdesktop.vo.LoginVo;
 import com.yannqing.dockerdesktop.vo.SecurityUser;
-import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,9 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -60,15 +57,15 @@ public class MyLoginSuccessHandler implements AuthenticationSuccessHandler {
         //将token存入redis中
         redisCache.setCacheObject("token:"+token,String.valueOf(authentication),60*60*3, TimeUnit.SECONDS);
 
-        LoginVo loginVo = new LoginVo(user,token,securityUser.getRole(), authList);
+        LoginVo userInfoVo = new LoginVo(user,token,securityUser.getRole(), authList);
 
 //        Map<String,Object> map = new HashMap<>();
 //        map.put("token", token);
 //        map.put("authList", authList);
 //        map.put("role", securityUser.getRole());
-//        map.put("userInfo",loginVo);
+//        map.put("userInfo",userInfoVo);
 
-        response.getWriter().write(JSONUtil.toJsonStr(ResultUtils.success(Code.LOGIN_SUCCESS,loginVo,"登录成功")));
+        response.getWriter().write(JSONUtil.toJsonStr(ResultUtils.success(Code.LOGIN_SUCCESS, userInfoVo,"登录成功")));
         log.info("登录成功！");
     }
 }
