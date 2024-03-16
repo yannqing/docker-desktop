@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yannqing.dockerdesktop.mapper.ContainerMapper">
+
+    <resultMap id="BaseResultMap" type="com.yannqing.dockerdesktop.domain.Container">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="internet" column="internet" jdbcType="TINYINT"/>
+            <result property="disk_size" column="disk_size" jdbcType="INTEGER"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="user_id" column="user_id" jdbcType="INTEGER"/>
+            <result property="run_log" column="run_log" jdbcType="VARCHAR"/>
+            <result property="start_log" column="start_log" jdbcType="VARCHAR"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,create_time,
+        internet,disk_size,status,
+        user_id,run_log,start_log,
+        isDelete
+    </sql>
+</mapper>

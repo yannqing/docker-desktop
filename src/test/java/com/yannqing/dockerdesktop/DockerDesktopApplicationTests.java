@@ -3,7 +3,7 @@ package com.yannqing.dockerdesktop;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.dockerdesktop.mapper.PermissionsMapper;
-import com.yannqing.dockerdesktop.vo.ContainerRunVo;
+import com.yannqing.dockerdesktop.vo.container.ContainerRunVo;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 class DockerDesktopApplicationTests {
@@ -43,5 +44,9 @@ class DockerDesktopApplicationTests {
         vo.setRunLog(list);
         System.out.println(vo);
     }
-
+    @Test
+    void test2(){
+        String s = UUID.randomUUID().toString();
+        System.out.println(s);
+    }
 }

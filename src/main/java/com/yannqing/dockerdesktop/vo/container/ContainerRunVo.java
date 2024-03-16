@@ -1,4 +1,4 @@
-package com.yannqing.dockerdesktop.vo;
+package com.yannqing.dockerdesktop.vo.container;
 
 import lombok.Data;
 
