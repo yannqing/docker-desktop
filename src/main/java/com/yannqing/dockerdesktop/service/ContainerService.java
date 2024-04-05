@@ -3,6 +3,10 @@ package com.yannqing.dockerdesktop.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.domain.Container;
+import com.yannqing.dockerdesktop.vo.container.ContainerStartVo;
+import com.yannqing.dockerdesktop.vo.container.RunLogVo;
+
+import java.util.List;
 
 /**
 * @author 67121
@@ -11,5 +15,11 @@ import com.yannqing.dockerdesktop.domain.Container;
 */
 public interface ContainerService extends IService<Container> {
 
-    ContainerInfoVo getContainerInfo(Integer containerId);
+    ContainerInfoVo getContainerInfo(String containerId);
+
+    List<RunLogVo> getLog(String containerId);
+
+    ContainerStartVo getContainerStart(String containerId);
+
+    List<ContainerInfoVo> getRunning();
 }
