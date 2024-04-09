@@ -8,6 +8,7 @@ import com.yannqing.dockerdesktop.vo.BaseResponse;
 import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.vo.container.ContainerStartVo;
 import com.yannqing.dockerdesktop.vo.container.RunLogVo;
+import com.yannqing.dockerdesktop.vo.container.RunningContainerVo;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -87,8 +88,8 @@ public class ContainerController {
      * @return
      */
     @GetMapping("/getRunning")
-    public BaseResponse<List<ContainerInfoVo>> getRunning() {
-        List<ContainerInfoVo> running = containerService.getRunning();
+    public BaseResponse<List<RunningContainerVo>> getRunning() {
+        List<RunningContainerVo> running = containerService.getRunning();
 
         return ResultUtils.success(Code.SUCCESS, running, "查询所有正在运行的容器成功！");
     }

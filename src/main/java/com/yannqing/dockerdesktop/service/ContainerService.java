@@ -5,6 +5,7 @@ import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.vo.container.ContainerStartVo;
 import com.yannqing.dockerdesktop.vo.container.RunLogVo;
+import com.yannqing.dockerdesktop.vo.container.RunningContainerVo;
 
 import java.util.List;
 
@@ -21,5 +22,5 @@ public interface ContainerService extends IService<Container> {
 
     ContainerStartVo getContainerStart(String containerId);
 
-    List<ContainerInfoVo> getRunning();
+    List<RunningContainerVo> getRunning();
 }
