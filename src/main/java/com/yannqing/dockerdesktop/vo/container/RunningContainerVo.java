@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 查询所有正在运行的容器--接口
+ */
 @Data
 public class RunningContainerVo {
     private String id;

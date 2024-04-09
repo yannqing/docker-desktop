@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 容器信息
+ * 获取容器详细信息--接口
  */
 @Data
 public class ContainerInfoVo {

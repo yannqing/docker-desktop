@@ -2,11 +2,16 @@ package com.yannqing.dockerdesktop.service.impl;
 
 import ch.qos.logback.core.util.COWArrayList;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yannqing.dockerdesktop.domain.User;
 import com.yannqing.dockerdesktop.mapper.UserMapper;
 import com.yannqing.dockerdesktop.service.ContainerService;
+import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.vo.container.*;
 import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.mapper.ContainerMapper;
@@ -18,9 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
 * @author 67121
@@ -31,15 +34,17 @@ import java.util.List;
 @Slf4j
 public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container>
     implements ContainerService {
-
     @Resource
     private ContainerMapper containerMapper;
-
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private RedisCache redisCache;
+    @Resource
+    private ObjectMapper objectMapper;
 
     /**
-     * 获取容器信息（TODO：管理员限制）
+     * 获取容器详细信息（TODO：管理员限制）
      * @param containerId
      * @return
      */
@@ -62,6 +67,11 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return containerInfoVo;
     }
 
+    /**
+     * 查询容器日志
+     * @param containerId
+     * @return
+     */
     @Override
     public List<RunLogVo> getLog(String containerId) {
 
@@ -69,13 +79,35 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return JSON.parseArray(JSON.parseObject(container.getRun_log()).getString("run_log"), RunLogVo.class);
     }
 
+    /**
+     * 查看容器的启动历史记录
+     * @return
+     */
     @Override
-    public ContainerStartVo getContainerStart(String containerId) {
-        Container container = containerMapper.selectById(containerId);
-
-        return new ContainerStartVo(container);
+    public List<ContainerStartVo> getContainerStart() {
+        //1. 从redis中取数据
+        String containerStartLogs = redisCache.getCacheObject("container:start:logs");
+        if (containerStartLogs == null) {
+            return null;
+        }
+        //2. 对数据进行处理，获取到需要的数据
+        Map<String, StartLogVo> startLogs = getStartLog(containerStartLogs);
+        //3. 遍历数据，返回固定格式的数据
+        List<ContainerStartVo> containerStartVoList = new ArrayList<>();
+        startLogs.forEach((key, value) -> {
+            Container container = containerMapper.selectById(key);
+            String author = userMapper.selectById(container.getUser_id()).getUsername();
+            ContainerStartVo containerStartVo = new ContainerStartVo(container, author, value.getStartTime(), value.getEndTime());
+            containerStartVoList.add(containerStartVo);
+        });
+        log.info("获取所有容器启动历史记录成功");
+        return containerStartVoList;
     }
 
+    /**
+     * 查看正在运行的容器
+     * @return
+     */
     @Override
     public List<RunningContainerVo> getRunning() {
         QueryWrapper<Container> query = new QueryWrapper<>();
@@ -100,6 +132,12 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return containerInfos;
     }
 
+    /**
+     * 自定义方法：获取容器在两个时间段内运行的时间
+     * @param startTime
+     * @param endTime
+     * @return
+     */
     public long getRunTime(String startTime, String endTime) {
         // 定义日期时间格式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -112,6 +150,66 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         long minutes = duration.toMinutes() % 60;
         return hours;
     }
+
+    /**
+     * 自定义方法：解析json，返回处理后的数据
+     * @param startLogs 待解析的String
+     * @return Map<key, StartLogVo> 
+     */
+    public Map<String, StartLogVo> getStartLog(String startLogs) {
+        //1. 定义返回值
+        Map<String, StartLogVo> log = new LinkedHashMap<>();
+        //2. 解析json，并返回数据
+        JSONArray runLogList = JSON.parseArray(startLogs);
+        for (Object obj : runLogList) {
+            if (obj instanceof JSONObject jsonObject) {
+                for (String key : jsonObject.keySet()) {
+                    JSONObject innerObject = jsonObject.getJSONObject(key);
+                    StartLogVo startLogVo = innerObject.toJavaObject(StartLogVo.class);
+                    log.put(key, startLogVo);
+                }
+            }
+        }
+        return log;
+    }
+
+    /**
+     * 自定义方法：新增容器的启动历史记录
+     * @param startLogs
+     * @param key
+     * @param startLogVo
+     * @throws JsonProcessingException
+     */
+    public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
+        //存储时间的json对象
+        JSONObject startLogJson = new JSONObject();
+        //获取到json集合
+        JSONArray runLogList = JSON.parseArray(startLogs);
+        //判断是否为空
+        //1. 开始时间为空，结束时间有值
+        if (startLogVo.getStartTime() == null) {
+            int size = runLogList.size();
+            //修改传入的数据的时间
+            JSONObject jsonObject = (JSONObject) runLogList.get(size - 1);
+            JSONObject startLogTime = jsonObject.getJSONObject(key);
+            startLogVo.setStartTime(startLogTime.getString("startTime"));
+            //移除之前的数据
+            runLogList.remove(size-1);
+        } else if (startLogVo.getEndTime() == null){
+            startLogVo.setEndTime("无");
+        }
+        startLogJson.put("startTime", startLogVo.getStartTime());
+        startLogJson.put("endTime", startLogVo.getEndTime());
+        //将容器id和时间，设置为json对象并存入json集合
+        JSONObject startLog = new JSONObject();
+        startLog.put(key, startLogJson);
+        runLogList.add(startLog);
+        //序列化后存入redis
+        String runLogsString = objectMapper.writeValueAsString(runLogList);
+        redisCache.setCacheObject("container:start:logs", runLogsString);
+    }
+
+
 
 
 }
