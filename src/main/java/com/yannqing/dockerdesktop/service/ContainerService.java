@@ -15,6 +15,7 @@ import java.util.List;
 * @createDate 2024-03-17 01:15:32
 */
 public interface ContainerService extends IService<Container> {
+    ContainerInfoVo getConInfo(String containerId);
 
     ContainerInfoVo getContainerInfo(String containerId);
 

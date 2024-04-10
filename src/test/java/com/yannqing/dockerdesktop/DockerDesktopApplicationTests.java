@@ -4,9 +4,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Info;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
 import com.yannqing.dockerdesktop.mapper.PermissionsMapper;
+import com.yannqing.dockerdesktop.service.ContainerService;
 import com.yannqing.dockerdesktop.utils.RedisCache;
-import com.yannqing.dockerdesktop.vo.container.RunLogVo;
+import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.vo.container.StartLogVo;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -14,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import com.alibaba.fastjson.JSON;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +36,9 @@ class DockerDesktopApplicationTests {
     ObjectMapper objectMapper;
     @Resource
     private RedisCache redisCache;
+
+    @Resource
+    private ContainerService containerService;
 
     @Test
     void testJson() throws JsonProcessingException {
@@ -127,6 +140,25 @@ class DockerDesktopApplicationTests {
         String s = UUID.randomUUID().toString();
         System.out.println(s);
     }
+
+    @Test
+    void dockerTest() {
+//        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+//        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+//                .dockerHost(config.getDockerHost())
+//                .build();
+//        DockerClient dockerClient =  DockerClientImpl.getInstance(config, httpClient);
+//
+//        // docker info
+//        Info info = dockerClient.infoCmd().exec();
+//        System.out.print(info);
+
+        ContainerInfoVo containerInfo = containerService.getConInfo("b0407a21078c");
+
+
+    }
+
+
 
     public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
         JSONObject startLogJson = new JSONObject();

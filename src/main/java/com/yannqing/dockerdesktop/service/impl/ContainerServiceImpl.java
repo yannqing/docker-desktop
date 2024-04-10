@@ -1,6 +1,5 @@
 package com.yannqing.dockerdesktop.service.impl;
 
-import ch.qos.logback.core.util.COWArrayList;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -8,22 +7,33 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.core.command.InspectContainerCmdImpl;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
+import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.domain.User;
+import com.yannqing.dockerdesktop.mapper.ContainerMapper;
 import com.yannqing.dockerdesktop.mapper.UserMapper;
 import com.yannqing.dockerdesktop.service.ContainerService;
 import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.vo.container.*;
-import com.yannqing.dockerdesktop.domain.Container;
-import com.yannqing.dockerdesktop.mapper.ContainerMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
 * @author 67121
@@ -34,6 +44,8 @@ import java.util.*;
 @Slf4j
 public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container>
     implements ContainerService {
+
+
     @Resource
     private ContainerMapper containerMapper;
     @Resource
@@ -42,6 +54,32 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     private RedisCache redisCache;
     @Resource
     private ObjectMapper objectMapper;
+
+    private final DockerClient dockerClient;
+
+    @Autowired
+    public ContainerServiceImpl(){
+        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                .dockerHost(config.getDockerHost())
+                .build();
+        this.dockerClient =  DockerClientImpl.getInstance(config, httpClient);
+    }
+
+    public ContainerInfoVo getConInfo(String containerId) {
+        InspectContainerCmdImpl inspectContainerCmd = (InspectContainerCmdImpl) dockerClient.inspectContainerCmd(containerId);
+
+        // 执行命令并获取容器信息
+        InspectContainerResponse inspectContainerResponse = inspectContainerCmd.exec();
+
+        // 输出容器信息
+        System.out.println("Container ID: " + inspectContainerResponse.getId());
+        System.out.println("Container State: " + inspectContainerResponse.getState());
+        System.out.println("Container Name: " + inspectContainerResponse.getName());
+        System.out.println("Container Created: " + inspectContainerResponse.getCreated());
+        System.out.println("Container ImageId: " + inspectContainerResponse.getImageId());
+        return null;
+    }
 
     /**
      * 获取容器详细信息（TODO：管理员限制）
@@ -208,10 +246,6 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         String runLogsString = objectMapper.writeValueAsString(runLogList);
         redisCache.setCacheObject("container:start:logs", runLogsString);
     }
-
-
-
-
 }
 
 
