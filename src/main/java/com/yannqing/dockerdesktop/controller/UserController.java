@@ -44,18 +44,20 @@ public class UserController {
      * @throws JsonProcessingException
      */
     @PostMapping("/changePassword")
-    public BaseResponse<Object> changePassword(@RequestParam("oldPassword") String oldPassword,
-                                               @RequestParam("newPassword") String newPassword,
+    public BaseResponse<Object> changePassword(@RequestParam("newPassword") String newPassword,
                                                @RequestParam("againPassword") String againPassword,
                                                HttpServletRequest request) throws JsonProcessingException {
         String token = request.getHeader("token");
-        boolean result = userService.changePassword(oldPassword, newPassword, againPassword, token);
+        boolean result = userService.changePassword(newPassword, againPassword, token);
         if (result) {
             return ResultUtils.success(Code.SUCCESS, null, "修改密码成功");
         }
         return ResultUtils.failure(Code.FAILURE, null, "修改密码失败");
     }
-
+    @PostMapping("/resetPassword")
+    public BaseResponse<Object> resetPassword(HttpServletRequest request) {
+        return null;
+    }
     @PostMapping("/add")
     public BaseResponse<Object> addUser(User user){
         boolean result = userService.createUser(user);

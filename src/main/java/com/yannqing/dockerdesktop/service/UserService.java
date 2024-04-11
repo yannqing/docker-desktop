@@ -15,8 +15,8 @@ import java.util.List;
 public interface UserService extends IService<User> {
     UserInfoVo getUserInfo(String token) throws JsonProcessingException;
 
-    boolean changePassword(String oldPassword, String newPassword, String againPassword, String token) throws JsonProcessingException;
-
+    boolean changePassword(String newPassword, String againPassword, String token) throws JsonProcessingException;
+    boolean resetPassword(String token) throws JsonProcessingException;
     boolean createUser(User user) ;
     boolean deleteUser(Integer userId);
     List<User> getAllUsers(String username);
