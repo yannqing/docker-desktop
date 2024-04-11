@@ -12,6 +12,8 @@ import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -56,22 +58,34 @@ public class UserController {
 
     @PostMapping("/add")
     public BaseResponse<Object> addUser(User user){
-        return ResultUtils.success(Code.SUCCESS, null, "新增用户成功（未实现）");
+        boolean result = userService.createUser(user);
+        if (result) {
+            return ResultUtils.success(Code.SUCCESS, null, "新增用户成功");
+        }else {
+            return ResultUtils.failure(Code.FAILURE, null, "新增用户失败");
+        }
     }
 
     @DeleteMapping("/delete")
     public BaseResponse<Object> deleteUser(Integer userId){
-        return ResultUtils.success(Code.SUCCESS, null, "删除用户成功（未实现）");
+        boolean result = userService.deleteUser(userId);
+        if (result) {
+            return ResultUtils.success(Code.SUCCESS, null, "删除用户成功");
+        }else {
+            return ResultUtils.failure(Code.FAILURE, null, "删除用户成失败");
+        }
     }
 
     @GetMapping("/getAllInfo")
-    public BaseResponse<Object> getInfo(Integer currentPage, Integer pageSize, Integer searchUsername) {
-        return ResultUtils.success(Code.SUCCESS, null, "查询用户成功（未实现）");
+    public BaseResponse<Object> getInfo(String username) {
+        List<User> allUsers = userService.getAllUsers(username);
+        return ResultUtils.success(Code.SUCCESS, allUsers, "查询用户成功");
     }
 
     @PostMapping("/update")
-    public BaseResponse<Object> updateUser(){
-        return ResultUtils.success(Code.SUCCESS, null, "修改用户成功（未实现）");
+    public BaseResponse<Object> updateUser(User user){
+        userService.updateUser(user);
+        return ResultUtils.success(Code.SUCCESS, null, "修改用户成功");
     }
 
 }

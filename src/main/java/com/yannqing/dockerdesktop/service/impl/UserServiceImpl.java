@@ -1,5 +1,6 @@
 package com.yannqing.dockerdesktop.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -74,6 +74,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         log.info("修改密码成功，请重新登录！");
         return result == 1;
+    }
+
+    @Override
+    public boolean createUser(User user) {
+        int result = userMapper.insert(user);
+        return result == 1;
+    }
+
+    @Override
+    public boolean deleteUser(Integer userId) {
+        int result = userMapper.deleteById(userId);
+        return result == 1;
+    }
+
+    @Override
+    public List<User> getAllUsers(String username) {
+        return userMapper.selectList(new QueryWrapper<User>().like("username", username));
+    }
+
+    @Override
+    public void updateUser(User user) {
+        User updateUser = new User();
+        updateUser.setUser_id(user.getUser_id());
+        updateUser.setUsername(user.getUsername());
+        updateUser.setPhone(user.getPhone());
+        updateUser.setEmail(user.getEmail());
+        updateUser.setDisk_size(user.getDisk_size());
+        updateUser.setInternet(user.getInternet());
+        updateUser.setNick_name(user.getNick_name());
+
+        int result = userMapper.updateById(updateUser);
     }
 
     public User getUserByToken(String token) throws JsonProcessingException {

@@ -21,6 +21,8 @@ public class UserInfoVo {
     private String avatar;
     private String nick_name;
     private int role;
+    private int internet;
+    private int disk_size;
     private List<String> authList;
 
     public UserInfoVo(User user, int role, List<String> authList) {
@@ -33,6 +35,8 @@ public class UserInfoVo {
         this.avatar = user.getAvatar();
         this.nick_name = user.getNick_name();
         this.role = role;
+        this.internet = user.getInternet();
+        this.disk_size = user.getDisk_size();
         this.authList = authList;
     }
 

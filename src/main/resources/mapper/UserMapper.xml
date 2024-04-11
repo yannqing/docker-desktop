@@ -15,6 +15,8 @@
             <result property="signature" column="signature" jdbcType="VARCHAR"/>
             <result property="sex" column="sex" jdbcType="VARCHAR"/>
             <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+            <result property="disk_size" column="disk_size" jdbcType="INTEGER"/>
+            <result property="internet" column="internet" jdbcType="INTEGER"/>
             <result property="nick_name" column="nick_name" jdbcType="VARCHAR"/>
             <result property="enabled" column="enabled" jdbcType="INTEGER"/>
             <result property="account_no_expired" column="account_no_expired" jdbcType="INTEGER"/>
@@ -28,8 +30,9 @@
         user_id,username,password,
         address,phone,email,
         age,signature,sex,
-        avatar,nick_name,enabled,
-        account_no_expired,credentials_no_expired,account_no_locked,
-        create_time,description
+        avatar,disk_size,internet,
+        nick_name,enabled,account_no_expired,
+        credentials_no_expired,account_no_locked,create_time,
+        description
     </sql>
 </mapper>

@@ -4,9 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 
@@ -76,6 +77,18 @@ public class User implements Serializable {
     private String avatar;
 
     /**
+     * 
+     */
+    @TableField(value = "disk_size")
+    private Integer disk_size;
+
+    /**
+     * 
+     */
+    @TableField(value = "internet")
+    private Integer internet;
+
+    /**
      * 昵称
      */
     @TableField(value = "nick_name")
@@ -142,6 +155,8 @@ public class User implements Serializable {
             && (this.getSignature() == null ? other.getSignature() == null : this.getSignature().equals(other.getSignature()))
             && (this.getSex() == null ? other.getSex() == null : this.getSex().equals(other.getSex()))
             && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
+            && (this.getDisk_size() == null ? other.getDisk_size() == null : this.getDisk_size().equals(other.getDisk_size()))
+            && (this.getInternet() == null ? other.getInternet() == null : this.getInternet().equals(other.getInternet()))
             && (this.getNick_name() == null ? other.getNick_name() == null : this.getNick_name().equals(other.getNick_name()))
             && (this.getEnabled() == null ? other.getEnabled() == null : this.getEnabled().equals(other.getEnabled()))
             && (this.getAccount_no_expired() == null ? other.getAccount_no_expired() == null : this.getAccount_no_expired().equals(other.getAccount_no_expired()))
@@ -165,6 +180,8 @@ public class User implements Serializable {
         result = prime * result + ((getSignature() == null) ? 0 : getSignature().hashCode());
         result = prime * result + ((getSex() == null) ? 0 : getSex().hashCode());
         result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
+        result = prime * result + ((getDisk_size() == null) ? 0 : getDisk_size().hashCode());
+        result = prime * result + ((getInternet() == null) ? 0 : getInternet().hashCode());
         result = prime * result + ((getNick_name() == null) ? 0 : getNick_name().hashCode());
         result = prime * result + ((getEnabled() == null) ? 0 : getEnabled().hashCode());
         result = prime * result + ((getAccount_no_expired() == null) ? 0 : getAccount_no_expired().hashCode());
@@ -191,6 +208,8 @@ public class User implements Serializable {
         sb.append(", signature=").append(signature);
         sb.append(", sex=").append(sex);
         sb.append(", avatar=").append(avatar);
+        sb.append(", disk_size=").append(disk_size);
+        sb.append(", internet=").append(internet);
         sb.append(", nick_name=").append(nick_name);
         sb.append(", enabled=").append(enabled);
         sb.append(", account_no_expired=").append(account_no_expired);

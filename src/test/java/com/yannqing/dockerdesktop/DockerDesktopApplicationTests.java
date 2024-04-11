@@ -162,8 +162,8 @@ class DockerDesktopApplicationTests {
 
     public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
         JSONObject startLogJson = new JSONObject();
-        startLogJson.put("startTime", startLogVo.getStartTime());
-        startLogJson.put("endTime", startLogVo.getEndTime());
+        startLogJson.put("startTime", startLogVo.getStart_time());
+        startLogJson.put("endTime", startLogVo.getEnd_time());
 
         JSONArray runLogList = JSON.parseArray(startLogs);
         JSONObject startLog = new JSONObject();

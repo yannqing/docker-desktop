@@ -9,6 +9,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class StartLogVo {
-    private String startTime;
-    private String endTime;
+    private String start_time;
+    private String end_time;
 }

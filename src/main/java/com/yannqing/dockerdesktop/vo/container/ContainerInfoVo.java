@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.yannqing.dockerdesktop.domain.Container;
 import lombok.Data;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,6 +37,6 @@ public class ContainerInfoVo {
 
         List<StartLogVo> start_log = JSON.parseArray(JSON.parseObject(container.getStart_log()).getString("start_log"), StartLogVo.class);
 
-        this.last_end_time = start_log.get(start_log.size()-1).getEndTime();
+        this.last_end_time = start_log.get(start_log.size()-1).getEnd_time();
     }
 }

@@ -96,8 +96,8 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         long runTime = 0;
 
         for (int i = 0; i < start_log.size(); i++) {
-            String startTime = start_log.get(i).getStartTime();
-            String endTime = start_log.get(i).getEndTime();
+            String startTime = start_log.get(i).getStart_time();
+            String endTime = start_log.get(i).getEnd_time();
             if (endTime == null) {
                 continue;
             }else {
@@ -192,7 +192,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         startLogs.forEach((key, value) -> {
             Container container = containerMapper.selectById(key);
             String author = userMapper.selectById(container.getUser_id()).getUsername();
-            ContainerStartVo containerStartVo = new ContainerStartVo(container, author, value.getStartTime(), value.getEndTime());
+            ContainerStartVo containerStartVo = new ContainerStartVo(container, author, value.getStart_time(), value.getEnd_time());
             containerStartVoList.add(containerStartVo);
         });
         log.info("获取所有容器启动历史记录成功");
@@ -216,8 +216,8 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
             //得出容器运行时间
             long runTime = 0;
             for (int i = 0; i < start_log.size(); i++) {
-                String startTime = start_log.get(i).getStartTime();
-                String endTime = start_log.get(i).getEndTime();
+                String startTime = start_log.get(i).getStart_time();
+                String endTime = start_log.get(i).getEnd_time();
                 runTime += getRunTime(startTime, endTime);
             }
             RunningContainerVo containerInfo = new RunningContainerVo(container, author.getUsername(), runTime);
@@ -287,19 +287,19 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         }
         //判断是否为空
         //1. 开始时间为空，结束时间有值
-        if (startLogVo.getStartTime() == null) {
+        if (startLogVo.getStart_time() == null) {
             int size = runLogList.size();
             //修改传入的数据的时间
             JSONObject jsonObject = (JSONObject) runLogList.get(size - 1);
             JSONObject startLogTime = jsonObject.getJSONObject(key);
-            startLogVo.setStartTime(startLogTime.getString("startTime"));
+            startLogVo.setStart_time(startLogTime.getString("startTime"));
             //移除之前的数据
             runLogList.remove(size-1);
-        } else if (startLogVo.getEndTime() == null || Objects.equals(startLogVo.getEndTime(), "无") || startLogVo.equals("")){
-            startLogVo.setEndTime("无");
+        } else if (startLogVo.getEnd_time() == null || Objects.equals(startLogVo.getEnd_time(), "无") || startLogVo.equals("")){
+            startLogVo.setEnd_time("无");
         }
-        startLogJson.put("startTime", startLogVo.getStartTime());
-        startLogJson.put("endTime", startLogVo.getEndTime());
+        startLogJson.put("startTime", startLogVo.getStart_time());
+        startLogJson.put("endTime", startLogVo.getEnd_time());
         //将容器id和时间，设置为json对象并存入json集合
         JSONObject startLog = new JSONObject();
         startLog.put(key, startLogJson);
