@@ -23,6 +23,7 @@ public interface ContainerService extends IService<Container> {
     List<RunLogVo> getLog(String containerId);
 
     String createContainer(String containerName, String token) throws JsonProcessingException;
+    boolean deleteContainer(String containerId, String token) throws JsonProcessingException;
 
     void stopContainer(String containerId) throws JsonProcessingException;
 

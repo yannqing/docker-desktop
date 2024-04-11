@@ -11,7 +11,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.RemoveConfigCmd;
 import com.github.dockerjava.api.command.StopContainerCmd;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -31,7 +33,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -85,8 +86,8 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
 
     /**
      * 获取容器详细信息（TODO：管理员限制）
-     * @param containerId
-     * @return
+     * @param containerId 容器id
+     * @return 返回容器信息
      */
     @Override
     public ContainerInfoVo getContainerInfo(String containerId) {
@@ -96,24 +97,24 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
 
         long runTime = 0;
 
-        for (int i = 0; i < start_log.size(); i++) {
-            String startTime = start_log.get(i).getStart_time();
-            String endTime = start_log.get(i).getEnd_time();
+        for (StartLogVo startLogVo : start_log) {
+            String startTime = startLogVo.getStart_time();
+            String endTime = startLogVo.getEnd_time();
             if (endTime == null) {
                 continue;
-            }else {
+            } else {
                 runTime += getRunTime(startTime, endTime);
             }
         }
         ContainerInfoVo containerInfoVo = new ContainerInfoVo(container, createUser.getUsername(), runTime);
-        log.info("获取容器信息{}成功！", containerInfoVo.toString());
+        log.info("获取容器信息{}成功！", containerInfoVo);
         return containerInfoVo;
     }
 
     /**
      * 查询容器日志
-     * @param containerId
-     * @return
+     * @param containerId 容器id
+     * @return 容器日志
      */
     @Override
     public List<RunLogVo> getLog(String containerId) {
@@ -122,23 +123,38 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return JSON.parseArray(JSON.parseObject(container.getRun_log()).getString("run_log"), RunLogVo.class);
     }
 
+    /**
+     * 创建并运行容器
+     * @param containerName 要创建的容器名称
+     * @param token 查询登录用户信息
+     * @return 返回创建的容器id
+     * @throws JsonProcessingException
+     */
     @Override
     public String createContainer(String containerName, String token) throws JsonProcessingException {
         //获取到登录者的信息
         String userInfoFromToken = JwtUtils.getUserInfoFromToken(token);
         User loginUser = objectMapper.readValue(userInfoFromToken, User.class);
 
+        // 创建容器的配置
+        Map<String, String> storageOpts = new HashMap<>();
+        storageOpts.put("size", loginUser.getDisk_size()+"G");
+
+        String internet = loginUser.getInternet() == 1 ? null : "none";
+
         // 构造创建容器命令
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("dulljz/uos-1060")
                 .withCmd("echo", "Create Container Success!")
                 .withPrivileged(true)
                 .withCmd("/usr/sbin/init")
-                .withName(containerName);
+                .withName(containerName)
+                .withHostConfig(HostConfig.newHostConfig()
+                    .withStorageOpt(storageOpts)
+                    .withNetworkMode(internet));
 
         // 执行创建容器命令
         String containerId = createContainerCmd.exec().getId();
         dockerClient.startContainerCmd(containerId).exec();
-        log.info("{}创建并运行容器{}成功", loginUser.getUsername(), containerName);
         // 存入数据库
         Container container = new Container();
         container.setId(containerId);
@@ -172,7 +188,36 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         containerMapper.insert(container);
         //所有容器的启动历史，存入redis
         addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+
+        log.info("{}创建并运行容器{}成功", loginUser.getUsername(), containerName);
         return containerId;
+    }
+
+    /**
+     * 销毁容器
+     * @param containerId 要销毁的容器id
+     * @return
+     */
+    @Override
+    public boolean deleteContainer(String containerId, String token) throws JsonProcessingException {
+        //获取登录信息
+        User loginUser = getUserByToken(token);
+        //1. 销毁容器
+        dockerClient.removeContainerCmd(containerId).exec();
+        //2. 修改数据库字段
+        Container container = containerMapper.selectById(containerId);
+        //3. 查询日志，并新增
+        List<RunLogVo> run_logs = getRunLog(container.getRun_log());
+        RunLogVo runLogVo = new RunLogVo();
+        runLogVo.setAction("用户" + loginUser.getUsername() + "销毁了容器：" + container.getName());
+        runLogVo.setTime(DateFormat.getCurrentTime());
+        run_logs.add(runLogVo);
+        //4. 序列化存入数据库
+        String runLogs = getRunLogString(run_logs);
+        containerMapper.update(new UpdateWrapper<Container>()
+                .eq("id", containerId).set("status", -1)
+                .set("run_log", runLogs));
+        return true;
     }
 
     @Override
@@ -200,7 +245,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
             return null;
         }
         //2. 对数据进行处理，获取到需要的数据
-        Map<String, StartLogVo> startLogs = getStartLog(containerStartLogs);
+        Map<String, StartLogVo> startLogs = getRedisStartLog(containerStartLogs);
         //3. 遍历数据，返回固定格式的数据
         List<ContainerStartVo> containerStartVoList = new ArrayList<>();
         startLogs.forEach((key, value) -> {
@@ -264,11 +309,11 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     }
 
     /**
-     * 自定义方法：解析json，返回处理后的数据
+     * 自定义方法：解析json，返回处理后的容器启动日志--Redis
      * @param startLogs 待解析的String
      * @return Map<key, StartLogVo> 
      */
-    public Map<String, StartLogVo> getStartLog(String startLogs) {
+    public Map<String, StartLogVo> getRedisStartLog(String startLogs) {
         //1. 定义返回值
         Map<String, StartLogVo> log = new LinkedHashMap<>();
         //2. 解析json，并返回数据
@@ -337,6 +382,73 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         //序列化后存入redis
         String runLogsString = objectMapper.writeValueAsString(runLogList);
         redisCache.setCacheObject("container:start:logs", runLogsString);
+    }
+
+    /**
+     * 解析数据库中的run_log（反序列化）
+     * @param runLogs
+     * @return
+     */
+    public List<RunLogVo> getRunLog(String runLogs) {
+        return JSON.parseArray(JSON.parseObject(runLogs).getString("run_log"), RunLogVo.class);
+    }
+
+    /**
+     * 序列化run_logs
+     * @param runLogs
+     * @return
+     */
+    public String getRunLogString(List<RunLogVo> runLogs) throws JsonProcessingException {
+        JSONArray jsonArray = new JSONArray();
+        for (RunLogVo runLogVo : runLogs) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("action", runLogVo.getAction());
+            jsonObject.put("time", runLogVo.getTime());
+            jsonArray.add(jsonObject);
+        }
+        JSONObject runLog = new JSONObject();
+        runLog.put("run_log", jsonArray);
+        return objectMapper.writeValueAsString(runLog);
+    }
+
+    /**
+     * 解析数据库中的start_log（反序列化）
+     * @param startLogs
+     * @return
+     */
+    public List<StartLogVo> getStartLog(String startLogs) {
+        return JSON.parseArray(JSON.parseObject(startLogs).getString("start_log"), StartLogVo.class);
+    }
+
+    /**
+     * 序列化start_log
+     * @param startLogs
+     * @return
+     * @throws JsonProcessingException
+     */
+    public String getStartLogString(List<StartLogVo> startLogs) throws JsonProcessingException {
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 0; i < startLogs.size(); i++) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("start_time", startLogs.get(i).getStart_time());
+            jsonObject.put("end_time", startLogs.get(i).getEnd_time());
+            jsonArray.add(jsonObject);
+        }
+        JSONObject startLog = new JSONObject();
+        startLog.put("start_log", jsonArray);
+        return objectMapper.writeValueAsString(startLog);
+    }
+
+    /**
+     * 自定义方法：根据token返回用户
+     * @param token
+     * @return
+     * @throws JsonProcessingException
+     */
+    public User getUserByToken(String token) throws JsonProcessingException {
+        String userInfo = JwtUtils.getUserInfoFromToken(token);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(userInfo, User.class);
     }
 }
 

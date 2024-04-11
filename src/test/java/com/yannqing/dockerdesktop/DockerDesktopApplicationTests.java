@@ -12,10 +12,13 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.mapper.PermissionsMapper;
 import com.yannqing.dockerdesktop.service.ContainerService;
+import com.yannqing.dockerdesktop.service.impl.ContainerServiceImpl;
 import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
+import com.yannqing.dockerdesktop.vo.container.RunLogVo;
 import com.yannqing.dockerdesktop.vo.container.StartLogVo;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -159,6 +162,13 @@ class DockerDesktopApplicationTests {
     }
 
 
+    @Test
+    void testContainer() {
+        ContainerServiceImpl containerService1 = new ContainerServiceImpl();
+        Container container = containerService.getById("0bd41a70-02c7-4498-833d-6025fb42f8e5");
+        JSON.parseObject(container.getStart_log()).getString("start_log");
+//        System.out.println(runLog);
+    }
 
     public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
         JSONObject startLogJson = new JSONObject();

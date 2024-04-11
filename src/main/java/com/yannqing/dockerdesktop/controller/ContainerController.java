@@ -77,8 +77,9 @@ public class ContainerController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse<Object> delete(String containerId) {
-        return ResultUtils.success(Code.SUCCESS, null, "删除容器成功！（未实现）");
+    public BaseResponse<Object> delete(String containerId, HttpServletRequest request) throws JsonProcessingException {
+        containerService.deleteContainer(containerId, request.getHeader("token"));
+        return ResultUtils.success(Code.SUCCESS, null, "删除容器成功！");
     }
 
     /**
