@@ -1,16 +1,17 @@
 package com.yannqing.dockerdesktop.service.impl;
 
-import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.StopContainerCmd;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -170,8 +171,21 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         container.setIsDelete(0);
         containerMapper.insert(container);
         //所有容器的启动历史，存入redis
-        addStartLogsMessage(null, containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+        addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
         return containerId;
+    }
+
+    @Override
+    public void stopContainer(String containerId) throws JsonProcessingException {
+        //1. 停止容器
+        StopContainerCmd stopContainerCmd = dockerClient.stopContainerCmd(containerId);
+        stopContainerCmd.exec();
+        //2. 修改数据库里容器的状态
+        containerMapper.update(new UpdateWrapper<Container>().eq("id", containerId).set("status", 1));
+        //3. 新增容器启动记录到redis
+        addStartLogsMessage(containerId, new StartLogVo(null, DateFormat.getCurrentTime()));
+
+        log.info("停止运行容器：{}", containerId);
     }
 
     /**
@@ -218,6 +232,9 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
             for (int i = 0; i < start_log.size(); i++) {
                 String startTime = start_log.get(i).getStart_time();
                 String endTime = start_log.get(i).getEnd_time();
+                if (endTime == null || startTime == null) {
+                    continue;
+                }
                 runTime += getRunTime(startTime, endTime);
             }
             RunningContainerVo containerInfo = new RunningContainerVo(container, author.getUsername(), runTime);
@@ -270,31 +287,44 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
 
     /**
      * 自定义方法：新增容器的启动历史记录
-     * @param startLogs
      * @param key
      * @param startLogVo
      * @throws JsonProcessingException
      */
-    public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
+    public void addStartLogsMessage(String key, StartLogVo startLogVo) throws JsonProcessingException {
         //存储时间的json对象
         JSONObject startLogJson = new JSONObject();
-        //获取到json集合
+        //redis数据
+        String startLogs = redisCache.getCacheObject("container:start:logs");
         JSONArray runLogList = null;
+
         if (startLogs == null) {
             runLogList = new JSONArray();
         }else {
             runLogList = JSON.parseArray(startLogs);
         }
+        //获取到json集合
         //判断是否为空
         //1. 开始时间为空，结束时间有值
         if (startLogVo.getStart_time() == null) {
             int size = runLogList.size();
             //修改传入的数据的时间
-            JSONObject jsonObject = (JSONObject) runLogList.get(size - 1);
-            JSONObject startLogTime = jsonObject.getJSONObject(key);
+            JSONObject startLogTime = new JSONObject();
+            for (int i = runLogList.size() - 1; i >= 0; i--) {
+                JSONObject jsonObject = (JSONObject) runLogList.get(i);
+                if (jsonObject.getJSONObject(key) != null) {
+                    startLogTime = jsonObject.getJSONObject(key);
+                    break;
+                } else {
+                    startLogTime = null;
+                }
+            }
+            if (startLogTime == null) {
+                throw new IllegalArgumentException("无法添加启动历史记录");
+            }
             startLogVo.setStart_time(startLogTime.getString("startTime"));
             //移除之前的数据
-            runLogList.remove(size-1);
+//            runLogList.remove(size-1);
         } else if (startLogVo.getEnd_time() == null || Objects.equals(startLogVo.getEnd_time(), "无") || startLogVo.equals("")){
             startLogVo.setEnd_time("无");
         }

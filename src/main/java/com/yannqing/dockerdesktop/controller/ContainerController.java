@@ -97,8 +97,9 @@ public class ContainerController {
      * @return
      */
     @PostMapping("/stop")
-    public BaseResponse<Object> stop(String containerId) {
-        return ResultUtils.success(Code.SUCCESS, null, "停止容器成功！（未实现）");
+    public BaseResponse<Object> stop(String containerId) throws JsonProcessingException {
+        containerService.stopContainer(containerId);
+        return ResultUtils.success(Code.SUCCESS, null, "停止容器成功！");
     }
 
     /**

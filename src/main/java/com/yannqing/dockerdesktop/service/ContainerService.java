@@ -24,6 +24,8 @@ public interface ContainerService extends IService<Container> {
 
     String createContainer(String containerName, String token) throws JsonProcessingException;
 
+    void stopContainer(String containerId) throws JsonProcessingException;
+
     List<ContainerStartVo> getContainerStart();
 
     List<RunningContainerVo> getRunning();
