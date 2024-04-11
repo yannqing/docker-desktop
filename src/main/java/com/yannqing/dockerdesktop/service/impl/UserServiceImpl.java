@@ -94,17 +94,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public void updateUser(User user) {
-        User updateUser = new User();
-        updateUser.setUser_id(user.getUser_id());
-        updateUser.setUsername(user.getUsername());
-        updateUser.setPhone(user.getPhone());
-        updateUser.setEmail(user.getEmail());
-        updateUser.setDisk_size(user.getDisk_size());
-        updateUser.setInternet(user.getInternet());
-        updateUser.setNick_name(user.getNick_name());
-
-        int result = userMapper.updateById(updateUser);
+    public boolean updateUser(User user) {
+        int result = userMapper.update(new UpdateWrapper<User>()
+                .eq("user_id", user.getUser_id())
+                .set("username", user.getUsername())
+                .set("phone", user.getPhone())
+                .set("email", user.getEmail())
+                .set("disk_size", user.getDisk_size())
+                .set("internet", user.getInternet())
+                .set("nick_name", user.getNick_name())
+        );
+        return result == 1;
     }
 
     public User getUserByToken(String token) throws JsonProcessingException {

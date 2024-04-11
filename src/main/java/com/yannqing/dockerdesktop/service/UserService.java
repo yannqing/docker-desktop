@@ -20,5 +20,5 @@ public interface UserService extends IService<User> {
     boolean createUser(User user) ;
     boolean deleteUser(Integer userId);
     List<User> getAllUsers(String username);
-    void updateUser(User user);
+    boolean updateUser(User user);
 }

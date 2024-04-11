@@ -84,8 +84,8 @@ public class UserController {
 
     @PostMapping("/update")
     public BaseResponse<Object> updateUser(User user){
-        userService.updateUser(user);
-        return ResultUtils.success(Code.SUCCESS, null, "修改用户成功");
+        boolean result = userService.updateUser(user);
+        return ResultUtils.success(Code.SUCCESS, result, "修改用户成功");
     }
 
 }
