@@ -65,8 +65,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String newEncryptPassword = passwordEncoder.encode(newPassword);
         //修改密码
         int result = userMapper.update(new UpdateWrapper<User>()
-                .eq("id", loginUser.getUser_id())
-                .set("userPassword", newEncryptPassword));
+                .eq("user_id", loginUser.getUser_id())
+                .set("password", newEncryptPassword));
         //删除token
         redisCache.deleteObject("token:"+token);
 
@@ -80,6 +80,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int result = userMapper.update(new UpdateWrapper<User>()
                 .eq("user_id", loginUser.getUser_id())
                 .set("password", passwordEncoder.encode("123456")));
+
+        //删除token
+        redisCache.deleteObject("token:"+token);
         return result == 1;
     }
 

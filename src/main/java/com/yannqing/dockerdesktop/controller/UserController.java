@@ -9,6 +9,7 @@ import com.yannqing.dockerdesktop.vo.BaseResponse;
 import com.yannqing.dockerdesktop.vo.UserInfoVo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,8 +56,14 @@ public class UserController {
         return ResultUtils.failure(Code.FAILURE, null, "修改密码失败");
     }
     @PostMapping("/resetPassword")
-    public BaseResponse<Object> resetPassword(HttpServletRequest request) {
-        return null;
+    public BaseResponse<Object> resetPassword(HttpServletRequest request) throws JsonProcessingException {
+        boolean result = userService.resetPassword(request.getHeader("token"));
+        if (result) {
+            return ResultUtils.success(Code.SUCCESS, null, "重设密码成功！");
+        }else {
+            return ResultUtils.failure(Code.FAILURE, null, "重设密码失败");
+        }
+
     }
     @PostMapping("/add")
     public BaseResponse<Object> addUser(User user){
