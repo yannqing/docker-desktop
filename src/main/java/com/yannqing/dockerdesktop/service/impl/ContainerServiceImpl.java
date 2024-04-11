@@ -194,6 +194,12 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     public boolean deleteContainer(String containerId, String token) throws JsonProcessingException {
         //获取登录信息
         User loginUser = getUserByToken(token);
+        //先判断容器是否在运行
+        InspectContainerResponse containerResponse = dockerClient.inspectContainerCmd(containerId).exec();
+        Boolean isRunning = containerResponse.getState().getRunning();
+        if (Boolean.TRUE.equals(isRunning)) {
+            return false;
+        }
         //1. 销毁容器
         dockerClient.removeContainerCmd(containerId).exec();
         //2. 修改数据库字段

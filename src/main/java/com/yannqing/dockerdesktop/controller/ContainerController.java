@@ -78,8 +78,12 @@ public class ContainerController {
      */
     @PostMapping("/delete")
     public BaseResponse<Object> delete(String containerId, HttpServletRequest request) throws JsonProcessingException {
-        containerService.deleteContainer(containerId, request.getHeader("token"));
-        return ResultUtils.success(Code.SUCCESS, null, "删除容器成功！");
+        boolean result = containerService.deleteContainer(containerId, request.getHeader("token"));
+        if (result) {
+            return ResultUtils.success(Code.SUCCESS, null, "删除容器成功！");
+        }else {
+            return ResultUtils.failure(Code.DELETE_CONTAINER_FAILURE, null, "容器在运行中，无法进行销毁");
+        }
     }
 
     /**
