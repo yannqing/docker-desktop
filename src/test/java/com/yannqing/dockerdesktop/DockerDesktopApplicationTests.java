@@ -167,7 +167,6 @@ class DockerDesktopApplicationTests {
         ContainerServiceImpl containerService1 = new ContainerServiceImpl();
         Container container = containerService.getById("0bd41a70-02c7-4498-833d-6025fb42f8e5");
         JSON.parseObject(container.getStart_log()).getString("start_log");
-//        System.out.println(runLog);
     }
 
     public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {

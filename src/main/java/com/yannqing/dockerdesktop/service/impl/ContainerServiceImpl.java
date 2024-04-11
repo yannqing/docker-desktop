@@ -147,10 +147,10 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
                 .withCmd("echo", "Create Container Success!")
                 .withPrivileged(true)
                 .withCmd("/usr/sbin/init")
-                .withName(containerName)
-                .withHostConfig(HostConfig.newHostConfig()
-                    .withStorageOpt(storageOpts)
-                    .withNetworkMode(internet));
+                .withName(containerName);
+//                .withHostConfig(HostConfig.newHostConfig()
+//                    .withStorageOpt(storageOpts)
+//                    .withNetworkMode(internet));
 
         // 执行创建容器命令
         String containerId = createContainerCmd.exec().getId();
@@ -164,26 +164,18 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         container.setDisk_size(50);
         container.setStatus(1);
         container.setUser_id(loginUser.getUser_id());
-        //1. 格式化容器日志，并存入数据库
-        JSONObject runLogObject = new JSONObject();
-        runLogObject.put("time", DateFormat.getCurrentTime());
-        //TODO: 如果是管理员，则修改
-        runLogObject.put("action", "用户"+ loginUser.getUsername() + "创建并启动了容器: "+containerName);
-        JSONArray jsonArray = new JSONArray();
-        jsonArray.add(runLogObject);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("run_log", jsonArray);
-        container.setRun_log(objectMapper.writeValueAsString(jsonObject));
-        //2. 格式化容器启动记录，存入数据库
-        JSONObject startLogObject = new JSONObject();
-        startLogObject.put("start_time", DateFormat.getCurrentTime());
-        //TODO: 如果是管理员，则修改
-        startLogObject.put("end_time", null);
-        JSONArray startLogJsonArray = new JSONArray();
-        startLogJsonArray.add(startLogObject);
-        JSONObject startLogJsonObject = new JSONObject();
-        startLogJsonObject.put("start_log", startLogJsonArray);
-        container.setStart_log(objectMapper.writeValueAsString(startLogJsonObject));
+        //格式化容器日志，并存入数据库
+        List<RunLogVo> logs = new ArrayList<>();
+        RunLogVo runLogVo = new RunLogVo();
+        runLogVo.setTime(DateFormat.getCurrentTime());
+        runLogVo.setAction("用户"+ loginUser.getUsername() + "创建并启动了容器: "+containerName);
+        logs.add(runLogVo);
+        container.setRun_log(getRunLogString(logs));
+        //格式化容器启动记录，存入数据库
+        List<StartLogVo> startLogVos = new ArrayList<>();
+        StartLogVo startLogVo = new StartLogVo(DateFormat.getCurrentTime(), null);
+        startLogVos.add(startLogVo);
+        container.setStart_log(getStartLogString(startLogVos));
         container.setIsDelete(0);
         containerMapper.insert(container);
         //所有容器的启动历史，存入redis
