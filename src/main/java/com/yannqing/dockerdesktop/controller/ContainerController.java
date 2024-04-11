@@ -92,8 +92,13 @@ public class ContainerController {
      * @return
      */
     @PostMapping("/run")
-    public BaseResponse<Object> run(String containerId) {
-        return ResultUtils.success(Code.SUCCESS, null, "启动容器成功！（未实现）");
+    public BaseResponse<Object> run(String containerId, HttpServletRequest request) throws JsonProcessingException {
+        boolean result = containerService.runContainer(containerId, request.getHeader("token"));
+        if (result) {
+            return ResultUtils.success(Code.SUCCESS, null, "启动容器成功！");
+        } else {
+            return ResultUtils.failure(Code.RUN_CONTAINER_FAILURE, null, "容器正在运行，无法启动");
+        }
     }
 
     /**

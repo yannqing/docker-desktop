@@ -218,6 +218,45 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return true;
     }
 
+    /**
+     * 启动容器
+     * @param containerId
+     * @param token
+     * @return
+     * @throws JsonProcessingException
+     */
+    @Override
+    public boolean runContainer(String containerId, String token) throws JsonProcessingException {
+        //判断容器状态
+        InspectContainerResponse containerResponse = dockerClient.inspectContainerCmd(containerId).exec();
+        if (Boolean.TRUE.equals(containerResponse.getState().getRunning())) {
+            return false;
+        }
+        //启动容器
+        try {
+            dockerClient.startContainerCmd(containerId).exec();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("启动容器失败，请重试！");
+        }
+        //存入三个日志中
+        User loginUser = getUserByToken(token);
+        Container container = containerMapper.selectById(containerId);
+        List<RunLogVo> runLogs = getRunLog(container.getRun_log());
+        List<StartLogVo> startLogs = getStartLog(container.getStart_log());
+        runLogs.add(new RunLogVo(DateFormat.getCurrentTime(), "用户"+loginUser.getUsername()+"启动容器："+container.getName()));
+        startLogs.add(new StartLogVo(DateFormat.getCurrentTime(), null));
+        containerMapper.update(new UpdateWrapper<Container>()
+                .eq("id", containerId)
+                .set("status", 1)
+                .set("run_log", getRunLogString(runLogs))
+                .set("start_log", getStartLogString(startLogs)));
+
+        addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+
+
+        return true;
+    }
+
     @Override
     public void stopContainer(String containerId) throws JsonProcessingException {
         //1. 停止容器
@@ -366,8 +405,6 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
                 throw new IllegalArgumentException("无法添加启动历史记录");
             }
             startLogVo.setStart_time(startLogTime.getString("startTime"));
-            //移除之前的数据
-//            runLogList.remove(size-1);
         } else if (startLogVo.getEnd_time() == null || Objects.equals(startLogVo.getEnd_time(), "无") || startLogVo.equals("")){
             startLogVo.setEnd_time("无");
         }
