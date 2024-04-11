@@ -1,5 +1,6 @@
 package com.yannqing.dockerdesktop.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yannqing.dockerdesktop.common.Code;
 import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.service.ContainerService;
@@ -11,6 +12,7 @@ import com.yannqing.dockerdesktop.vo.container.RunLogVo;
 import com.yannqing.dockerdesktop.vo.container.RunningContainerVo;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,9 +65,10 @@ public class ContainerController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Object> add() {
-
-        return ResultUtils.success(Code.SUCCESS, null, "创建容器成功（未实现）");
+    public BaseResponse<Object> createContainer(String containerName, HttpServletRequest request) throws JsonProcessingException {
+        String token = request.getHeader("token");
+        String containerId = containerService.createContainer(containerName, token);
+        return ResultUtils.success(Code.SUCCESS, containerId, "创建容器成功!");
     }
 
     /**

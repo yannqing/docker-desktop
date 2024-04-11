@@ -1,5 +1,6 @@
 package com.yannqing.dockerdesktop.service.impl;
 
+import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -8,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -20,6 +22,8 @@ import com.yannqing.dockerdesktop.domain.User;
 import com.yannqing.dockerdesktop.mapper.ContainerMapper;
 import com.yannqing.dockerdesktop.mapper.UserMapper;
 import com.yannqing.dockerdesktop.service.ContainerService;
+import com.yannqing.dockerdesktop.utils.DateFormat;
+import com.yannqing.dockerdesktop.utils.JwtUtils;
 import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.vo.container.*;
 import jakarta.annotation.Resource;
@@ -30,10 +34,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
 * @author 67121
@@ -97,8 +98,11 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         for (int i = 0; i < start_log.size(); i++) {
             String startTime = start_log.get(i).getStartTime();
             String endTime = start_log.get(i).getEndTime();
-
-            runTime += getRunTime(startTime, endTime);
+            if (endTime == null) {
+                continue;
+            }else {
+                runTime += getRunTime(startTime, endTime);
+            }
         }
         ContainerInfoVo containerInfoVo = new ContainerInfoVo(container, createUser.getUsername(), runTime);
         log.info("获取容器信息{}成功！", containerInfoVo.toString());
@@ -115,6 +119,59 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
 
         Container container = containerMapper.selectById(containerId);
         return JSON.parseArray(JSON.parseObject(container.getRun_log()).getString("run_log"), RunLogVo.class);
+    }
+
+    @Override
+    public String createContainer(String containerName, String token) throws JsonProcessingException {
+        //获取到登录者的信息
+        String userInfoFromToken = JwtUtils.getUserInfoFromToken(token);
+        User loginUser = objectMapper.readValue(userInfoFromToken, User.class);
+
+        // 构造创建容器命令
+        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("dulljz/uos-1060")
+                .withCmd("echo", "Create Container Success!")
+                .withPrivileged(true)
+                .withCmd("/usr/sbin/init")
+                .withName(containerName);
+
+        // 执行创建容器命令
+        String containerId = createContainerCmd.exec().getId();
+        dockerClient.startContainerCmd(containerId).exec();
+        log.info("{}创建并运行容器{}成功", loginUser.getUsername(), containerName);
+        // 存入数据库
+        Container container = new Container();
+        container.setId(containerId);
+        container.setName(containerName);
+        container.setCreate_time(new Date());
+        container.setInternet(1);
+        container.setDisk_size(50);
+        container.setStatus(1);
+        container.setUser_id(loginUser.getUser_id());
+        //1. 格式化容器日志，并存入数据库
+        JSONObject runLogObject = new JSONObject();
+        runLogObject.put("time", DateFormat.getCurrentTime());
+        //TODO: 如果是管理员，则修改
+        runLogObject.put("action", "用户"+ loginUser.getUsername() + "创建并启动了容器: "+containerName);
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(runLogObject);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("run_log", jsonArray);
+        container.setRun_log(objectMapper.writeValueAsString(jsonObject));
+        //2. 格式化容器启动记录，存入数据库
+        JSONObject startLogObject = new JSONObject();
+        startLogObject.put("start_time", DateFormat.getCurrentTime());
+        //TODO: 如果是管理员，则修改
+        startLogObject.put("end_time", null);
+        JSONArray startLogJsonArray = new JSONArray();
+        startLogJsonArray.add(startLogObject);
+        JSONObject startLogJsonObject = new JSONObject();
+        startLogJsonObject.put("start_log", startLogJsonArray);
+        container.setStart_log(objectMapper.writeValueAsString(startLogJsonObject));
+        container.setIsDelete(0);
+        containerMapper.insert(container);
+        //所有容器的启动历史，存入redis
+        addStartLogsMessage(null, containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+        return containerId;
     }
 
     /**
@@ -222,7 +279,12 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         //存储时间的json对象
         JSONObject startLogJson = new JSONObject();
         //获取到json集合
-        JSONArray runLogList = JSON.parseArray(startLogs);
+        JSONArray runLogList = null;
+        if (startLogs == null) {
+            runLogList = new JSONArray();
+        }else {
+            runLogList = JSON.parseArray(startLogs);
+        }
         //判断是否为空
         //1. 开始时间为空，结束时间有值
         if (startLogVo.getStartTime() == null) {
@@ -233,7 +295,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
             startLogVo.setStartTime(startLogTime.getString("startTime"));
             //移除之前的数据
             runLogList.remove(size-1);
-        } else if (startLogVo.getEndTime() == null){
+        } else if (startLogVo.getEndTime() == null || Objects.equals(startLogVo.getEndTime(), "无") || startLogVo.equals("")){
             startLogVo.setEndTime("无");
         }
         startLogJson.put("startTime", startLogVo.getStartTime());

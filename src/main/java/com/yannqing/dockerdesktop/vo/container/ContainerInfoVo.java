@@ -12,6 +12,7 @@ import java.util.List;
  */
 @Data
 public class ContainerInfoVo {
+    private String id;
     private String name;
     private String username;
     private Integer user_id;
@@ -23,6 +24,7 @@ public class ContainerInfoVo {
     private String create_time;
     private List<RunLogVo> run_log;
     public ContainerInfoVo(Container container, String author, long run_time) {
+        this.id = container.getId();
         this.name = container.getName();
         this.username = author;
         this.user_id = container.getUser_id();

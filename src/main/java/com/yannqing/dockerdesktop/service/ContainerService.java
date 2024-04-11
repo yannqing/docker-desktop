@@ -1,6 +1,7 @@
 package com.yannqing.dockerdesktop.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.vo.container.ContainerStartVo;
@@ -20,6 +21,8 @@ public interface ContainerService extends IService<Container> {
     ContainerInfoVo getContainerInfo(String containerId);
 
     List<RunLogVo> getLog(String containerId);
+
+    String createContainer(String containerName, String token) throws JsonProcessingException;
 
     List<ContainerStartVo> getContainerStart();
 
