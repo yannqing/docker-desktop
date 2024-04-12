@@ -22,7 +22,9 @@ public interface ContainerService extends IService<Container> {
     String createContainer(String containerName, String token) throws JsonProcessingException;
     boolean deleteContainer(String containerId, String token) throws JsonProcessingException;
     boolean runContainer(String containerId, String token) throws JsonProcessingException;
+    boolean resetContainer(String containerId, String token) throws JsonProcessingException;
     void stopContainer(String containerId) throws JsonProcessingException;
     List<ContainerStartVo> getContainerStart();
     List<RunningContainerVo> getRunning();
+    List<ContainerInfoVo> getMyContainerInfo(String token) throws JsonProcessingException;
 }

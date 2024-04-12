@@ -257,6 +257,37 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         return true;
     }
 
+    /**
+     * 重启容器
+     * @param containerId
+     * @param token
+     * @return
+     */
+    @Override
+    public boolean resetContainer(String containerId, String token) throws JsonProcessingException {
+        User loginUser = getUserByToken(token);
+        dockerClient.restartContainerCmd(containerId).exec();
+
+        Container container = containerMapper.selectById(containerId);
+        List<RunLogVo> runLog = getRunLog(container.getRun_log());
+        List<StartLogVo> startLog = getStartLog(container.getStart_log());
+        runLog.add(new RunLogVo(DateFormat.getCurrentTime(), "用户"+loginUser.getUsername()+"重启了容器"));
+        startLog.add(new StartLogVo(DateFormat.getCurrentTime(), null));
+
+        containerMapper.update(new UpdateWrapper<Container>()
+                .eq("id", containerId).set("status", 1)
+                .set("run_log", getRunLogString(runLog))
+                .set("start_log", getStartLogString(startLog)));
+        //添加到redis
+        addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+        return true;
+    }
+
+    /**
+     * 停止容器
+     * @param containerId
+     * @throws JsonProcessingException
+     */
     @Override
     public void stopContainer(String containerId) throws JsonProcessingException {
         //1. 停止容器
@@ -327,12 +358,45 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     }
 
     /**
+     * 登录的用户查看自己的容器信息
+     * @param token
+     * @return
+     * @throws JsonProcessingException
+     */
+    @Override
+    public List<ContainerInfoVo> getMyContainerInfo(String token) throws JsonProcessingException {
+        User loginUser = getUserByToken(token);
+
+        List<Container> myContainers = containerMapper.selectList(new QueryWrapper<Container>().eq("user_id", loginUser.getUser_id()));
+
+        List<ContainerInfoVo> containerInfoVos = new ArrayList<>();
+        myContainers.forEach(myContainer -> {
+            ContainerInfoVo containerInfoVo = new ContainerInfoVo(myContainer, loginUser.getUsername(), getRunTimeByRunTime(getStartLog(myContainer.getStart_log())));
+            containerInfoVos.add(containerInfoVo);
+        });
+
+
+        return containerInfoVos;
+    }
+
+    public long getRunTimeByRunTime(List<StartLogVo> startLogVos) {
+        long hours = 0;
+        for (int i = 0; i < startLogVos.size(); i++) {
+            hours += getRunTime(startLogVos.get(i).getStart_time(), startLogVos.get(i).getEnd_time());
+        }
+        return hours;
+    }
+
+    /**
      * 自定义方法：获取容器在两个时间段内运行的时间
      * @param startTime
      * @param endTime
      * @return
      */
     public long getRunTime(String startTime, String endTime) {
+        if (startTime == null || endTime == null || startTime.equals("无") || endTime.equals("无")) {
+            return 0;
+        }
         // 定义日期时间格式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         // 解析字符串为 LocalDateTime 对象

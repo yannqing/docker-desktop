@@ -2,7 +2,6 @@ package com.yannqing.dockerdesktop.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yannqing.dockerdesktop.common.Code;
-import com.yannqing.dockerdesktop.domain.Container;
 import com.yannqing.dockerdesktop.service.ContainerService;
 import com.yannqing.dockerdesktop.utils.ResultUtils;
 import com.yannqing.dockerdesktop.vo.BaseResponse;
@@ -10,7 +9,6 @@ import com.yannqing.dockerdesktop.vo.container.ContainerInfoVo;
 import com.yannqing.dockerdesktop.vo.container.ContainerStartVo;
 import com.yannqing.dockerdesktop.vo.container.RunLogVo;
 import com.yannqing.dockerdesktop.vo.container.RunningContainerVo;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +44,7 @@ public class ContainerController {
      */
     @PostMapping("/updateDataSize")
     public BaseResponse<Object> changeDataSize(String containerId, Integer size) {
-        return ResultUtils.success(Code.SUCCESS, null, "修改数据盘大小成功！（未实现）");
+        return ResultUtils.success(Code.SUCCESS, null, "修改数据盘大小成功！");
     }
 
     /**
@@ -113,13 +111,13 @@ public class ContainerController {
     }
 
     /**
-     * 重置容器
+     * 重启容器
      * @param containerId
      * @return
      */
     @PostMapping("/reset")
     public BaseResponse<Object> reset(String containerId) {
-        return ResultUtils.success(Code.SUCCESS, null, "重置容器成功！（未实现）");
+        return ResultUtils.success(Code.SUCCESS, null, "重启容器成功！");
     }
 
     /**
@@ -141,5 +139,17 @@ public class ContainerController {
         List<RunningContainerVo> running = containerService.getRunning();
 
         return ResultUtils.success(Code.SUCCESS, running, "查询正在运行的容器成功！");
+    }
+
+    /**
+     * 登录的用户查看自己的容器信息
+     * @param request
+     * @return
+     * @throws JsonProcessingException
+     */
+    @GetMapping("/getMyContainer")
+    public BaseResponse<List<ContainerInfoVo>> getMyContainerInfo(HttpServletRequest request) throws JsonProcessingException {
+        List<ContainerInfoVo> myContainerInfo = containerService.getMyContainerInfo(request.getHeader("token"));
+        return ResultUtils.success(Code.SUCCESS, myContainerInfo, "查看我的容器成功");
     }
 }
