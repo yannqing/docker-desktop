@@ -31,13 +31,13 @@ import java.util.Objects;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
 
-    @Autowired
+    @Resource
     private ObjectMapper objectMapper;
 
     @Resource
     private RoleMapper roleMapper;
 
-    @Autowired
+    @Resource
     private PasswordEncoder passwordEncoder;
 
     @Resource
