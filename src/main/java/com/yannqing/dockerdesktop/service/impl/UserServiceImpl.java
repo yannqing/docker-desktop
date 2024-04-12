@@ -88,6 +88,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public boolean createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         int result = userMapper.insert(user);
         return result == 1;
     }
