@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yannqing.dockerdesktop.domain.RoleUser;
 import com.yannqing.dockerdesktop.domain.User;
 import com.yannqing.dockerdesktop.mapper.RoleMapper;
+import com.yannqing.dockerdesktop.mapper.RoleUserMapper;
 import com.yannqing.dockerdesktop.service.UserService;
 import com.yannqing.dockerdesktop.mapper.UserMapper;
 import com.yannqing.dockerdesktop.utils.JwtUtils;
@@ -14,7 +16,6 @@ import com.yannqing.dockerdesktop.utils.RedisCache;
 import com.yannqing.dockerdesktop.vo.UserInfoVo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private UserMapper userMapper;
     @Resource
     private RedisCache redisCache;
+    @Resource
+    private RoleUserMapper roleUserMapper;
 
     @Override
     public UserInfoVo getUserInfo(String token) throws JsonProcessingException {
@@ -90,6 +93,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public boolean createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         int result = userMapper.insert(user);
+        RoleUser roleUser = new RoleUser();
+        roleUser.setUid(user.getUser_id());
+        roleUser.setRid(0);
+        roleUserMapper.insert(roleUser);
         return result == 1;
     }
 
