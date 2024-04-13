@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -92,6 +93,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setAccount_no_expired(1);
+        user.setAccount_no_locked(1);
+        user.setEnabled(1);
+        user.setCredentials_no_expired(1);
+        user.setCreate_time(new Date());
         int result = userMapper.insert(user);
         RoleUser roleUser = new RoleUser();
         roleUser.setUid(user.getUser_id());
