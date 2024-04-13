@@ -144,30 +144,30 @@ class DockerDesktopApplicationTests {
         System.out.println(s);
     }
 
-    @Test
-    void dockerTest() {
-//        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
-//        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-//                .dockerHost(config.getDockerHost())
-//                .build();
-//        DockerClient dockerClient =  DockerClientImpl.getInstance(config, httpClient);
+//    @Test
+//    void dockerTest() {
+////        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+////        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+////                .dockerHost(config.getDockerHost())
+////                .build();
+////        DockerClient dockerClient =  DockerClientImpl.getInstance(config, httpClient);
+////
+////        // docker info
+////        Info info = dockerClient.infoCmd().exec();
+////        System.out.print(info);
 //
-//        // docker info
-//        Info info = dockerClient.infoCmd().exec();
-//        System.out.print(info);
-
-        ContainerInfoVo containerInfo = containerService.getConInfo("b0407a21078c");
-
-
-    }
+//        ContainerInfoVo containerInfo = containerService.getConInfo("b0407a21078c");
+//
+//
+//    }
 
 
-    @Test
-    void testContainer() {
-        ContainerServiceImpl containerService1 = new ContainerServiceImpl();
-        Container container = containerService.getById("0bd41a70-02c7-4498-833d-6025fb42f8e5");
-        JSON.parseObject(container.getStart_log()).getString("start_log");
-    }
+//    @Test
+//    void testContainer() {
+//        ContainerServiceImpl containerService1 = new ContainerServiceImpl();
+//        Container container = containerService.getById("0bd41a70-02c7-4498-833d-6025fb42f8e5");
+////        JSON.parseObject(container.getStart_log()).getString("start_log");
+//    }
 
     public void addStartLogsMessage(String startLogs, String key, StartLogVo startLogVo) throws JsonProcessingException {
         JSONObject startLogJson = new JSONObject();

@@ -23,7 +23,6 @@ public class UserInfoVo {
     private int role;
     private int internet;
     private int disk_size;
-    private List<String> authList;
 
     public UserInfoVo(User user, int role, List<String> authList) {
         this.user_id = user.getUser_id();
@@ -37,7 +36,6 @@ public class UserInfoVo {
         this.role = role;
         this.internet = user.getInternet();
         this.disk_size = user.getDisk_size();
-        this.authList = authList;
     }
 
 }
