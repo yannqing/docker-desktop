@@ -13,7 +13,10 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.RemoveConfigCmd;
 import com.github.dockerjava.api.command.StopContainerCmd;
+import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -137,17 +140,31 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         User loginUser = objectMapper.readValue(userInfoFromToken, User.class);
 
         // 创建容器的配置
-        Map<String, String> storageOpts = new HashMap<>();
-        storageOpts.put("size", loginUser.getDisk_size()+"G");
+//        Map<String, String> storageOpts = new HashMap<>();
+//        storageOpts.put("size", loginUser.getDisk_size()+"G");
+//
+//        String internet = loginUser.getInternet() == 1 ? null : "none";
 
-        String internet = loginUser.getInternet() == 1 ? null : "none";
+
+
+        // 定义暴露端口
+        ExposedPort tcp80 = ExposedPort.tcp(6080);
+
+        // 定义端口绑定
+        PortBinding portBinding = PortBinding.parse("5501:6080");
+        Ports portBindings = new Ports();
+        portBindings.bind(tcp80, portBinding.getBinding());
+
 
         // 构造创建容器命令
-        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("dulljz/uos-1060")
-                .withCmd("echo", "Create Container Success!")
+        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("x11vnc/docker-desktop")
+//                .withCmd("echo", "Create Container Success!")
                 .withPrivileged(true)
-                .withCmd("/usr/sbin/init")
+//                .withCmd("/usr/sbin/init")
+                .withExposedPorts(tcp80)
+                .withPortBindings(portBindings)
                 .withName(containerName);
+
 //                .withHostConfig(HostConfig.newHostConfig()
 //                    .withStorageOpt(storageOpts)
 //                    .withNetworkMode(internet));
