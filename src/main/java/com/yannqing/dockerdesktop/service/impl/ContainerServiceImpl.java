@@ -356,7 +356,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         //1. 从redis中取数据
         String containerStartLogs = redisCache.getCacheObject("container:start:logs");
         if (containerStartLogs == null) {
-            return null;
+            throw new IllegalArgumentException("所有容器，均未启动过");
         }
         //2. 对数据进行处理，获取到需要的数据
         Map<String, StartLogVo> startLogs = getRedisStartLog(containerStartLogs);
@@ -364,6 +364,9 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         List<ContainerStartVo> containerStartVoList = new ArrayList<>();
         startLogs.forEach((key, value) -> {
             Container container = containerMapper.selectById(key);
+            if (container == null) {
+                throw new IllegalArgumentException("该容器并未启动过！");
+            }
             String author = userMapper.selectById(container.getUser_id()).getUsername();
             ContainerStartVo containerStartVo = new ContainerStartVo(container, author, value.getStart_time(), value.getEnd_time());
             containerStartVoList.add(containerStartVo);
