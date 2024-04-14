@@ -19,7 +19,7 @@ public interface ContainerService extends IService<Container> {
     ContainerInfoVo getConInfo(String containerId);
     ContainerInfoVo getContainerInfo(String containerId);
     List<RunLogVo> getLog(String containerId);
-    String createContainer(String containerName, String token) throws JsonProcessingException;
+    List<String> createContainer(String containerName, String token) throws JsonProcessingException;
     boolean deleteContainer(String containerId, String token) throws JsonProcessingException;
     boolean runContainer(String containerId, String token) throws JsonProcessingException;
     boolean resetContainer(String containerId, String token) throws JsonProcessingException;

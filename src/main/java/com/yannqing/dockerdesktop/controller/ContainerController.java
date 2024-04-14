@@ -63,9 +63,9 @@ public class ContainerController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Object> createContainer(String containerName, HttpServletRequest request) throws JsonProcessingException {
+    public BaseResponse<List<String>> createContainer(String containerName, HttpServletRequest request) throws JsonProcessingException {
         String token = request.getHeader("token");
-        String containerId = containerService.createContainer(containerName, token);
+        List<String> containerId = containerService.createContainer(containerName, token);
         return ResultUtils.success(Code.SUCCESS, containerId, "创建容器成功!");
     }
 

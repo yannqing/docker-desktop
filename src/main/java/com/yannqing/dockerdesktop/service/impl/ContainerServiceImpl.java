@@ -13,10 +13,7 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.RemoveConfigCmd;
 import com.github.dockerjava.api.command.StopContainerCmd;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.PortBinding;
-import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -40,6 +37,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
 * @author 67121
@@ -134,10 +132,26 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
      * @throws JsonProcessingException
      */
     @Override
-    public String createContainer(String containerName, String token) throws JsonProcessingException {
+    public List<String> createContainer(String containerName, String token) throws JsonProcessingException {
+        List<String> res = new ArrayList<>();
         //获取到登录者的信息
         String userInfoFromToken = JwtUtils.getUserInfoFromToken(token);
         User loginUser = objectMapper.readValue(userInfoFromToken, User.class);
+
+        Integer port = redisCache.getCacheObject("port");
+        res.add(port.toString());
+
+        ExposedPort tcp1234 = ExposedPort.tcp(6080);
+
+        Ports portBindings = new Ports();
+        portBindings.bind(tcp1234, Ports.Binding.bindPort(port));
+
+        Bind[] binds = {
+                Bind.parse("/tmp/test_docker:/home/ubuntu/shared"),
+                Bind.parse("x11vnc_zh_CN_config:/home/ubuntu/.config"),
+                Bind.parse("x11vnc_project:/home/ubuntu/project"),
+                Bind.parse("/home/yuezi/.ssh:/home/ubuntu/.ssh")
+        };
 
         // 创建容器的配置
 //        Map<String, String> storageOpts = new HashMap<>();
@@ -145,25 +159,18 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
 //
 //        String internet = loginUser.getInternet() == 1 ? null : "none";
 
-
-
-        // 定义暴露端口
-        ExposedPort tcp80 = ExposedPort.tcp(6080);
-
-        // 定义端口绑定
-        PortBinding portBinding = PortBinding.parse("5501:6080");
-        Ports portBindings = new Ports();
-        portBindings.bind(tcp80, portBinding.getBinding());
-
+        HostConfig hostConfig = HostConfig.newHostConfig()
+                .withPortBindings(portBindings)
+                .withBinds(binds)
+                .withShmSize(2 * 1024 * 1024 * 1024L) // 2GB
+                .withNetworkMode("bridge");
 
         // 构造创建容器命令
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("x11vnc/docker-desktop")
-//                .withCmd("echo", "Create Container Success!")
-                .withPrivileged(true)
-//                .withCmd("/usr/sbin/init")
-                .withExposedPorts(tcp80)
-                .withPortBindings(portBindings)
+                .withHostConfig(hostConfig)
+                .withExposedPorts(tcp1234)
                 .withName(containerName);
+
 
 //                .withHostConfig(HostConfig.newHostConfig()
 //                    .withStorageOpt(storageOpts)
@@ -198,8 +205,11 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         //所有容器的启动历史，存入redis
         addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
 
+
+        redisCache.setCacheObject("port", port + 1, 60*60*24*3, TimeUnit.SECONDS);
         log.info("{}创建并运行容器{}成功", loginUser.getUsername(), containerName);
-        return containerId;
+        res.add(containerId);
+        return res;
     }
 
     /**
