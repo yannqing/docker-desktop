@@ -15,6 +15,8 @@ public class RunningContainerVo {
     private String name;
     private Integer disk_size;
     private Integer internet;
+    private Integer port;
+
     private String username;
     private Integer user_id;
     private String last_start_time;
@@ -25,6 +27,7 @@ public class RunningContainerVo {
         this.name = container.getName();
         this.disk_size = container.getDisk_size();
         this.internet = container.getInternet();
+        this.port = container.getPort();
         this.user_id = container.getUser_id();
         this.username = author;
         List<StartLogVo> start_log = JSON.parseArray(JSON.parseObject(container.getStart_log()).getString("start_log"), StartLogVo.class);

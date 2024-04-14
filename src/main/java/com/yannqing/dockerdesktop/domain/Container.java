@@ -46,7 +46,7 @@ public class Container implements Serializable {
     private Integer disk_size;
 
     /**
-     * 0未启动，1启动中
+     * 0停止运行，1启动中，-1已销毁
      */
     @TableField(value = "status")
     private Integer status;
@@ -75,6 +75,12 @@ public class Container implements Serializable {
     @TableField(value = "isDelete")
     private Integer isDelete;
 
+    /**
+     * 容器端口
+     */
+    @TableField(value = "port")
+    private Integer port;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
@@ -99,7 +105,8 @@ public class Container implements Serializable {
             && (this.getUser_id() == null ? other.getUser_id() == null : this.getUser_id().equals(other.getUser_id()))
             && (this.getRun_log() == null ? other.getRun_log() == null : this.getRun_log().equals(other.getRun_log()))
             && (this.getStart_log() == null ? other.getStart_log() == null : this.getStart_log().equals(other.getStart_log()))
-            && (this.getIsDelete() == null ? other.getIsDelete() == null : this.getIsDelete().equals(other.getIsDelete()));
+            && (this.getIsDelete() == null ? other.getIsDelete() == null : this.getIsDelete().equals(other.getIsDelete()))
+            && (this.getPort() == null ? other.getPort() == null : this.getPort().equals(other.getPort()));
     }
 
     @Override
@@ -116,6 +123,7 @@ public class Container implements Serializable {
         result = prime * result + ((getRun_log() == null) ? 0 : getRun_log().hashCode());
         result = prime * result + ((getStart_log() == null) ? 0 : getStart_log().hashCode());
         result = prime * result + ((getIsDelete() == null) ? 0 : getIsDelete().hashCode());
+        result = prime * result + ((getPort() == null) ? 0 : getPort().hashCode());
         return result;
     }
 
@@ -135,6 +143,7 @@ public class Container implements Serializable {
         sb.append(", run_log=").append(run_log);
         sb.append(", start_log=").append(start_log);
         sb.append(", isDelete=").append(isDelete);
+        sb.append(", port=").append(port);
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();

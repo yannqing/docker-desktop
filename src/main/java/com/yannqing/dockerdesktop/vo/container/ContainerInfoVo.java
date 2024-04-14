@@ -18,6 +18,7 @@ public class ContainerInfoVo {
     private Integer internet;
     private Integer disk_size;
     private Integer status;
+    private Integer port;
     private String last_end_time;
     private long run_time;
     private String create_time;
@@ -28,6 +29,7 @@ public class ContainerInfoVo {
         this.username = author;
         this.user_id = container.getUser_id();
         this.internet = container.getInternet();
+        this.port = container.getPort();
         this.disk_size = container.getDisk_size();
         this.status = container.getStatus();
         this.create_time = String.valueOf(container.getCreate_time());

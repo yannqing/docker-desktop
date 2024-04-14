@@ -15,12 +15,13 @@
             <result property="run_log" column="run_log" jdbcType="VARCHAR"/>
             <result property="start_log" column="start_log" jdbcType="VARCHAR"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+            <result property="port" column="port" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,name,create_time,
         internet,disk_size,status,
         user_id,run_log,start_log,
-        isDelete
+        isDelete,port
     </sql>
 </mapper>

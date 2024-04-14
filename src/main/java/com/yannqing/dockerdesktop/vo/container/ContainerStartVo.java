@@ -15,6 +15,8 @@ public class ContainerStartVo {
     private String name;
     private Integer internet;
     private Integer disk_size;
+    private Integer port;
+
     private Integer status;
     private Integer user_id;
     private String username;
@@ -26,6 +28,7 @@ public class ContainerStartVo {
         this.name = container.getName();
         this.disk_size = container.getDisk_size();
         this.internet = container.getInternet();
+        this.port = container.getPort();
         this.status = container.getStatus();
         this.user_id = container.getUser_id();
         this.username = author;
