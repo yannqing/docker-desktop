@@ -71,10 +71,7 @@ class DockerDesktopApplicationTests {
 
     @Test
     void setRedis() throws JsonProcessingException {
-        Integer port = 5800;
-        redisCache.setCacheObject("port", port, 60*60*24*3, TimeUnit.SECONDS);
-
-
+        redisCache.deleteObject("container:start:logs");
     }
 //
 //    @Test

@@ -364,9 +364,6 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         List<ContainerStartVo> containerStartVoList = new ArrayList<>();
         startLogs.forEach((key, value) -> {
             Container container = containerMapper.selectById(key);
-            if (container == null) {
-                throw new IllegalArgumentException("该容器并未启动过！");
-            }
             String author = userMapper.selectById(container.getUser_id()).getUsername();
             ContainerStartVo containerStartVo = new ContainerStartVo(container, author, value.getStart_time(), value.getEnd_time());
             containerStartVoList.add(containerStartVo);
