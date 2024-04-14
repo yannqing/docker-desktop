@@ -36,6 +36,10 @@ public class ContainerController {
         return ResultUtils.success(Code.SUCCESS, containerInfo, "获取容器信息成功！");
     }
 
+    /**
+     * 查询所有容器信息
+     * @return
+     */
     @GetMapping("/getAllContainer")
     public BaseResponse<List<ContainerInfoVo>> getAllContainers() {
         List<ContainerInfoVo> allContainers = containerService.getAllContainers();
