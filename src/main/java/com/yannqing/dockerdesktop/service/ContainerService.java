@@ -18,6 +18,7 @@ import java.util.List;
 public interface ContainerService extends IService<Container> {
     ContainerInfoVo getConInfo(String containerId);
     ContainerInfoVo getContainerInfo(String containerId);
+    List<ContainerInfoVo> getAllContainers();
     List<RunLogVo> getLog(String containerId);
     List<String> createContainer(String containerName, String token) throws JsonProcessingException;
     boolean deleteContainer(String containerId, String token) throws JsonProcessingException;

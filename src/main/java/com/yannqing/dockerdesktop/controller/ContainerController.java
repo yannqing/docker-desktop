@@ -36,6 +36,11 @@ public class ContainerController {
         return ResultUtils.success(Code.SUCCESS, containerInfo, "获取容器信息成功！");
     }
 
+    @GetMapping("/getAllContainer")
+    public BaseResponse<List<ContainerInfoVo>> getAllContainers(HttpServletRequest request) {
+        return null;
+    }
+
     /**
      * 修改容器的数据盘大小
      * @param containerId

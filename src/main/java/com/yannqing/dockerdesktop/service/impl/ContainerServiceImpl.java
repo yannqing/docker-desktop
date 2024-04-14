@@ -113,6 +113,22 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     }
 
     /**
+     * 查询全部容器信息
+     * @return
+     */
+    @Override
+    public List<ContainerInfoVo> getAllContainers() {
+        List<Container> containers = containerMapper.selectList(null);
+        List<ContainerInfoVo> result = new ArrayList<>();
+        for (Container container : containers) {
+            ContainerInfoVo containerInfoVo = new ContainerInfoVo(container, userMapper.selectById(container.getUser_id()).getUsername(), getRunTimeByRunTime(getStartLog(container.getStart_log())));
+            result.add(containerInfoVo);
+        }
+        log.info("查询全部信息成功！");
+        return result;
+    }
+
+    /**
      * 查询容器日志
      * @param containerId 容器id
      * @return 容器日志
