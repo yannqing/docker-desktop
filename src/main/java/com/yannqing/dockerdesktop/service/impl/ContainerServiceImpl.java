@@ -185,6 +185,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("x11vnc/docker-desktop")
                 .withHostConfig(hostConfig)
                 .withExposedPorts(tcp1234)
+                .withEnv("VNCPASS=123456", "RESOLUTION=1024x768", "HOST_UID=1000", "HOST_GID=1000") // 添加环境变量
                 .withName(containerName);
 
 
