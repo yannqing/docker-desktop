@@ -413,7 +413,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     public List<ContainerInfoVo> getMyContainerInfo(String token) throws JsonProcessingException {
         User loginUser = getUserByToken(token);
 
-        List<Container> myContainers = containerMapper.selectList(new QueryWrapper<Container>().eq("user_id", loginUser.getUser_id()));
+        List<Container> myContainers = containerMapper.selectList(new QueryWrapper<Container>().eq("user_id", loginUser.getUser_id()).ne("status", -1));
 
         List<ContainerInfoVo> containerInfoVos = new ArrayList<>();
         myContainers.forEach(myContainer -> {
