@@ -182,7 +182,8 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
                 .withNetworkMode("bridge");
 
         // 构造创建容器命令
-        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("x11vnc/docker-desktop")
+        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd("x11vnc/docker-desktop:zh_CN")
+                .withCmd("startvnc.sh")
                 .withHostConfig(hostConfig)
                 .withExposedPorts(tcp1234)
                 .withEnv("VNCPASS=123456", "RESOLUTION=1024x768", "HOST_UID=1000", "HOST_GID=1000") // 添加环境变量
