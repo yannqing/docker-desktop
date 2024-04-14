@@ -74,6 +74,12 @@ public class GlobalExceptionHandler {
         return ResultUtils.failure("服务器繁忙，请稍后重试！");
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public BaseResponse<Object> handleRedisConnectionFailureException(IllegalArgumentException e, HttpServletRequest request, HttpServletResponse response){
+        log.error("参数错误：{}", e.getMessage());
+        return ResultUtils.failure("参数错误");
+    }
+
     /**
      * 系统异常
      */
