@@ -38,7 +38,8 @@ public class ContainerController {
 
     @GetMapping("/getAllContainer")
     public BaseResponse<List<ContainerInfoVo>> getAllContainers(HttpServletRequest request) {
-        return null;
+        List<ContainerInfoVo> allContainers = containerService.getAllContainers();
+        return ResultUtils.success(Code.SUCCESS, allContainers, "查询全部容器信息成功");
     }
 
     /**
