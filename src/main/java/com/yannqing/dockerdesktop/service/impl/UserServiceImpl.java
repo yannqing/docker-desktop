@@ -79,14 +79,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public boolean resetPassword(String token) throws JsonProcessingException {
-        User loginUser = getUserByToken(token);
+    public boolean resetPassword(Integer userId, String token) throws JsonProcessingException {
+        User user = userMapper.selectById(userId);
         int result = userMapper.update(new UpdateWrapper<User>()
-                .eq("user_id", loginUser.getUser_id())
+                .eq("user_id", userId)
                 .set("password", passwordEncoder.encode("123456")));
 
         //删除token
         redisCache.deleteObject("token:"+token);
+        log.info("重置用户{}的密码为123456", user.getUsername());
         return result == 1;
     }
 

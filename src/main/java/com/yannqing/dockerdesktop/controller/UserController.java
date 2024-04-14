@@ -54,8 +54,8 @@ public class UserController {
         return ResultUtils.failure(Code.FAILURE, null, "修改密码失败");
     }
     @PostMapping("/resetPassword")
-    public BaseResponse<Object> resetPassword(HttpServletRequest request) throws JsonProcessingException {
-        boolean result = userService.resetPassword(request.getHeader("token"));
+    public BaseResponse<Object> resetPassword(Integer userId, HttpServletRequest request) throws JsonProcessingException {
+        boolean result = userService.resetPassword(userId, request.getHeader("token"));
         if (result) {
             return ResultUtils.success(Code.SUCCESS, null, "重设密码成功，请重新登录");
         }else {
