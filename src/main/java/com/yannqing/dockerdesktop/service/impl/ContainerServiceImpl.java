@@ -204,6 +204,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         container.setDisk_size(50);
         container.setStatus(1);
         container.setUser_id(loginUser.getUser_id());
+        container.setPort(port);
         //格式化容器日志，并存入数据库
         List<RunLogVo> logs = new ArrayList<>();
         RunLogVo runLogVo = new RunLogVo();
