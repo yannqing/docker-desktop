@@ -32,7 +32,10 @@ import com.yannqing.dockerdesktop.vo.container.*;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,7 +52,11 @@ import java.util.concurrent.TimeUnit;
 public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container>
     implements ContainerService {
 
+    @Value("${docker-host}")
+    private String dockerHost;
 
+    @Value("${docker-port}")
+    private String dockerPort;
     @Resource
     private ContainerMapper containerMapper;
     @Resource
@@ -65,7 +72,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
     public ContainerServiceImpl(){
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
         DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(config.getDockerHost())
+                .dockerHost(URI.create("tcp://"+dockerHost+":"+dockerPort))
                 .build();
         this.dockerClient =  DockerClientImpl.getInstance(config, httpClient);
     }
@@ -155,7 +162,7 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
         User loginUser = objectMapper.readValue(userInfoFromToken, User.class);
 
         Integer port = redisCache.getCacheObject("port");
-        res.add(port.toString());
+        res.add(dockerHost+":"+port.toString());
 
         ExposedPort tcp1234 = ExposedPort.tcp(6080);
 
