@@ -311,21 +311,23 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
      */
     @Override
     public boolean resetContainer(String containerId, String token) throws JsonProcessingException {
-        User loginUser = getUserByToken(token);
-        dockerClient.restartContainerCmd(containerId).exec();
-
-        Container container = containerMapper.selectById(containerId);
-        List<RunLogVo> runLog = getRunLog(container.getRun_log());
-        List<StartLogVo> startLog = getStartLog(container.getStart_log());
-        runLog.add(new RunLogVo(DateFormat.getCurrentTime(), "用户"+loginUser.getUsername()+"重启了容器"));
-        startLog.add(new StartLogVo(DateFormat.getCurrentTime(), null));
-
-        containerMapper.update(new UpdateWrapper<Container>()
-                .eq("id", containerId).set("status", 1)
-                .set("run_log", getRunLogString(runLog))
-                .set("start_log", getStartLogString(startLog)));
-        //添加到redis
-        addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+//        User loginUser = getUserByToken(token);
+//        dockerClient.restartContainerCmd(containerId).exec();
+//
+//        Container container = containerMapper.selectById(containerId);
+//        List<RunLogVo> runLog = getRunLog(container.getRun_log());
+//        List<StartLogVo> startLog = getStartLog(container.getStart_log());
+//        runLog.add(new RunLogVo(DateFormat.getCurrentTime(), "用户"+loginUser.getUsername()+"重启了容器"));
+//        startLog.add(new StartLogVo(DateFormat.getCurrentTime(), null));
+//
+//        containerMapper.update(new UpdateWrapper<Container>()
+//                .eq("id", containerId).set("status", 1)
+//                .set("run_log", getRunLogString(runLog))
+//                .set("start_log", getStartLogString(startLog)));
+//        //添加到redis
+//        addStartLogsMessage(containerId, new StartLogVo(DateFormat.getCurrentTime(), null));
+        stopContainer(containerId, token);
+        runContainer(containerId, token);
         return true;
     }
 
@@ -335,14 +337,27 @@ public class ContainerServiceImpl extends ServiceImpl<ContainerMapper, Container
      * @throws JsonProcessingException
      */
     @Override
-    public void stopContainer(String containerId) throws JsonProcessingException {
+    public void stopContainer(String containerId, String token) throws JsonProcessingException {
+        User loginUser = getUserByToken(token);
         //1. 停止容器
         StopContainerCmd stopContainerCmd = dockerClient.stopContainerCmd(containerId);
         stopContainerCmd.exec();
+        Container container = containerMapper.selectById(containerId);
+        String run_log = container.getRun_log();
+        List<RunLogVo> runLog = getRunLog(run_log);
+        runLog.add(new RunLogVo(DateFormat.getCurrentTime(), "用户"+loginUser.getUsername()+"停止了容器："+container.getName()));
+        String runLogString = getRunLogString(runLog);
+        List<StartLogVo> startLog = getStartLog(container.getStart_log());
+        startLog.get(startLog.size() - 1).setEnd_time(DateFormat.getCurrentTime());
         //2. 修改数据库里容器的状态
-        containerMapper.update(new UpdateWrapper<Container>().eq("id", containerId).set("status", 1));
+        containerMapper.update(new UpdateWrapper<Container>()
+                .eq("id", containerId).set("status", 0)
+                .set("run_log", runLogString)
+                .set("start_log", getStartLogString(startLog))
+        );
         //3. 新增容器启动记录到redis
         addStartLogsMessage(containerId, new StartLogVo(null, DateFormat.getCurrentTime()));
+
 
         log.info("停止运行容器：{}", containerId);
     }
