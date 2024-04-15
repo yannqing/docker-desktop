@@ -34,3 +34,5 @@ build/
 /src/main/resources/application.yml
 /src/main/resources/application-dev.yml
 /src/main/resources/docker-java.properties
+/src/main/resources/config.properties
+
