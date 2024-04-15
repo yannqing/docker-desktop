@@ -16,7 +16,7 @@ public interface UserService extends IService<User> {
     UserInfoVo getUserInfo(String token) throws JsonProcessingException;
 
     boolean changePassword(String newPassword, String againPassword, String token) throws JsonProcessingException;
-    boolean resetPassword(Integer userId, String token) throws JsonProcessingException;
+    boolean resetPassword(Integer userId) throws JsonProcessingException;
     boolean createUser(User user) ;
     boolean deleteUser(Integer userId);
     List<User> getAllUsers(String username);
